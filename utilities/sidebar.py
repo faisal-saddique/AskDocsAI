@@ -11,7 +11,8 @@ Once the relevant documents are obtained, **AskDocsAI** uses OpenAI's GPT model 
 
 The bot also provides timing information, displaying the elapsed time for the search and answer generation processes.
 
-To use **AskDocsAI**, simply enter your question in the provided text input field, and the bot will retrieve relevant document chunks and generate an answer based on the given query."""
+To use **AskDocsAI**, simply enter your question in the provided text input field, and the bot will retrieve relevant document chunks and generate an answer based on the given query.
+"""
 
 def sidebar():
     with st.sidebar:
