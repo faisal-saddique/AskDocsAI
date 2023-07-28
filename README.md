@@ -31,14 +31,14 @@ To run the AskDocsAI application, you need to follow these steps:
 
 3. Set up environment variables:
 
-   The application uses environment variables for configuration. Create a `.env` file in the project directory and set the required variables:
+   The application uses environment variables for configuration. Rename the `.env.template` file to `.env` file in the project directory and set the required variables:
 
    ```
    OPENAI_API_KEY=<your_openai_api_key>
 
    ```
 
-   Replace `<your_openai_api_key>` with your OpenAI API key.
+   Replace `<your_openai_api_key>` with your OpenAI API key. Change the other settings according to your preference.
 
 4. Run the Streamlit application:
 
