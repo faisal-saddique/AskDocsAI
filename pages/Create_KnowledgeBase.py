@@ -6,17 +6,13 @@ from utilities.utils import (
     parse_xlsx,
     parse_csv,
     num_tokens_from_string,
-    create_index_from_docs,
-    add_vectors_to_FAISS,
-    remove_files_from_pinecone
+    add_vectors_to_FAISS
 )
 from dotenv import load_dotenv
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
-import pinecone
-from langchain.vectorstores import Pinecone
-import os
-import uuid
+
+from utilities.sidebar import sidebar
+
+sidebar()
 
 # Load environment variables from .env file
 load_dotenv()
