@@ -117,6 +117,21 @@ def parse_xlsx(content):
             
     return data
 
+def parse_csv(content):
+    # Create a temporary file in memory
+    with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as temp_file:
+        # Write the CSV string to the temporary file
+        temp_file.write(content)
+        temp_file.flush()
+
+        # Step 2: Load the data using CSVLoader
+        loader = CSVLoader(file_path=temp_file.name,encoding='utf-8')
+        data = loader.load()
+        for doc in data:
+            doc.metadata["source"] = temp_file.name
+            
+    return data
+
 def refined_docs(docs):
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size = 1600, # You can play around with this parameter to adjust the length of each chunk

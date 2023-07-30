@@ -4,6 +4,7 @@ from utilities.utils import (
     parse_docx,
     parse_pdf,
     parse_xlsx,
+    parse_csv,
     num_tokens_from_string,
     create_index_from_docs,
     add_vectors_to_FAISS,
@@ -24,7 +25,8 @@ load_dotenv()
 
 st.title("Upload Documents")
 
-uploaded_files = st.file_uploader("Upload one or more files", accept_multiple_files=True)
+accepted_file_types = ["pdf", "csv", "docx", "xlsx"]
+uploaded_files = st.file_uploader("Upload one or more files", accept_multiple_files=True, type=accepted_file_types)
 
 if uploaded_files:
     docs = None
@@ -53,20 +55,26 @@ if uploaded_files:
                 docs = parse_xlsx(file_content)
             else:
                 docs = docs + parse_xlsx(file_content)
+        
+        elif file_extension == 'CSV':
+            if docs is None:
+                docs = parse_csv(file_content)
+            else:
+                docs = docs + parse_csv(file_content)
         else:
             raise ValueError("File type not supported!")
         
-        for doc in docs:
-            st.success(doc)
+        # for doc in docs:
+        #     st.success(doc)
 
     chunked_docs = refined_docs(docs)
 
-    for doc in chunked_docs:
-        st.warning(doc)
+    # for doc in chunked_docs:
+    #     st.warning(doc)
 
     no_of_tokens = num_tokens_from_string(chunked_docs)
     st.write(f"Number of tokens: \n{no_of_tokens}")
 
     with st.spinner("Creating Index..."):
         st.session_state.index = add_vectors_to_FAISS(chunked_docs=chunked_docs)
-        st.write("Done!")
+        st.success("Done! Please headover to chatbot to start interacting with your data.")
