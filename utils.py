@@ -23,7 +23,7 @@ def enable_chat_history(func):
         if msg["role"] == "assistant":
             if "index" in st.session_state:
             # print(msg["content"])
-                st.chat_message(msg["role"],avatar="https://github.com/faisal-saddique/AskDocsAI/blob/main/assets/boom.png").write(msg["content"])
+                st.chat_message(msg["role"],avatar="https://i.imgur.com/kke7zXp.png").write(msg["content"])
         else:
             st.chat_message(msg["role"]).write(msg["content"])
 
