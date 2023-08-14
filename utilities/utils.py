@@ -134,35 +134,15 @@ def parse_csv(content):
 
 def refined_docs(docs):
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size = 1600, # You can play around with this parameter to adjust the length of each chunk
+        chunk_size = 2000, # You can play around with this parameter to adjust the length of each chunk
         chunk_overlap  = 10,
         separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""],
         length_function = len,
     )
 
+    print(f"Lenght of docs is {len(docs)}")
     return text_splitter.split_documents(docs)
 
-    # new_chunks = None
-
-    # for obj in docs:
-    #     try:
-    #         if new_chunks is None:
-    #             
-    #             new_chunks = text_splitter.create_documents([obj.page_content], metadatas=[obj.metadata])
-    #         else:
-    #             new_chunks = new_chunks + text_splitter.create_documents([obj.page_content], metadatas=[obj.metadata])
-    #     except:
-    #         print(f"A potential error caused by chunk: {obj}")
-    #         pass
-
-    # for object in new_chunks:
-    #     try:
-    #         object.metadata["filename_key"] = convert_filename_to_key(os.path.split(object.metadata['source'])[-1])
-    #         if "text" in object.metadata:
-    #             del object.metadata["text"]
-    #     except Exception as oops:
-    #         print(f"Object causing error is: {object}")
-    # return new_chunks
 
 def num_tokens_from_string(chunked_docs: List[Document]) -> int:
 
