@@ -72,7 +72,7 @@ class CustomDataChatbot:
     def get_matching_chunks_from_vecstore(self, vectorstore, query: str):
 
         # Perform similarity search in the vector store and get the top 4 most similar documents
-        docs = vectorstore.similarity_search(query, k=1)
+        docs = vectorstore.similarity_search(query, k=3)
 
         st.error(len(docs))
         with st.expander("Show Matched Chunks"):
