@@ -11,7 +11,7 @@ from streaming import StreamHandler
 
 sidebar()
 
-st.title("Ask more Docs AI 🤖")
+st.title("Ask Docs AI 🤖")
 
 # Load environment variables from .env file
 load_dotenv()
