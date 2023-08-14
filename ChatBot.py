@@ -1,12 +1,9 @@
-from langchain.prompts import SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
-from langchain.chat_models import ChatOpenAI
-from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationalRetrievalChain
 import utils
-
+import openai
+import tiktoken
+import json
 from dotenv import load_dotenv
 import os
-import time
 from langchain.embeddings import OpenAIEmbeddings
 import streamlit as st
 from utilities.sidebar import sidebar
@@ -21,109 +18,128 @@ load_dotenv()
 
 embeddings = OpenAIEmbeddings()
 
+
 class CustomDataChatbot:
 
     def __init__(self):
         self.openai_model = "gpt-3.5-turbo"
+        if "chat_messages" not in st.session_state:
+            st.session_state.chat_messages = []
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+
+    # Function to count the number of tokens in a text string
+    def num_tokens_from_string(self, string: str, encoding_name: str = "cl100k_base") -> int:
+        encoding = tiktoken.get_encoding(encoding_name)
+        num_tokens = len(encoding.encode(string))
+        return num_tokens
+
+    # @st.cache_resource
+    def get_vectorstore_instance(self):
+        vectordb =  st.session_state.index
+        return vectordb
+
+    # Function to manage chat history by adding messages and handling token limits
+    def manage_chat_history(self, role, content):
+
+        st.session_state.chat_messages.append({"role": f"{role}", "content": f"{content}"})
+
+        # Count the number of tokens used in the chat history
+        chat_history_tokens = self.num_tokens_from_string(json.dumps(st.session_state.chat_messages))
+        print(f"\nChat history consumes {chat_history_tokens} tokens up till now\n")
+
+        # Check if the token limit (3500 tokens) is about to be hit, if yes, remove extra messages
+        if chat_history_tokens >= 3500:
+            print("Avoiding token limit hit, removing extra chat messages...")
+            # Keep only the system prompt and last 2 messages to reduce token usage
+            messages = [st.session_state.chat_messages[0]] + st.session_state.chat_messages[-2:]
+
+    # Function to get the AI assistant's response using OpenAI's ChatCompletion API
+    def get_gpt_response(self, messages):
+        # Make a request to the GPT-3.5 Turbo model to get the response
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=messages,
+            temperature=0,
+            max_tokens=1024,
+            stream=True
+        )
+
+        # Extract and return the content of the AI assistant's response
+        return response
 
     @st.spinner('Analyzing documents..')
-    def setup_qa_chain(self):
+    # Function to retrieve matching chunks from the vector store for a given query
+    def get_matching_chunks_from_vecstore(self, vectorstore, query: str):
 
-        vectordb =  st.session_state.index
+        # Perform similarity search in the vector store and get the top 3 most similar documents
+        docs = vectorstore.similarity_search(query, k=4)
 
-        # Define retriever
-        retriever = vectordb.as_retriever(
-            search_type='mmr',
-            search_kwargs={'k':2}
-        )
+        with st.expander("Show Matched Chunks"):
+            for idx, doc in enumerate(docs):
+                st.write(f"**Chunk # {idx+1}**")
+                st.text(f"{doc.page_content}")
+                st.json(doc.metadata, expanded=False)
 
-        # Setup memory for contextual conversation        
-        memory = ConversationBufferMemory(
-            memory_key='chat_history',
-            return_messages=True
-        )
+        # Prepare a formatted string with the content of each document
+        context = "\n--------------------------------------\n"
+        for doc in docs:
+            context += doc.page_content + "\n--------------------------------------\n"
 
-        llm = ChatOpenAI(
-            model_name=os.getenv('MODEL_NAME') or "gpt-3.5-turbo", # type: ignore
-            temperature=os.getenv('MODEL_TEMPERATURE') or .3,
-            max_tokens=os.getenv('MAX_TOKENS') or 1500,
-            streaming=True
-        )
+        return context
 
-        qa_chain = ConversationalRetrievalChain.from_llm(llm, retriever=retriever, memory=memory, verbose=True)
-        return qa_chain
+    # Function to create an input prompt for the chat with the AI assistant
+    def create_input_prompt(self, vectorstore, query: str):
 
+        # Get the relevant context based on the query from the vector store
+        context = self.get_matching_chunks_from_vecstore(vectorstore=vectorstore, query=query)
 
+        # Combine the context and query to form the input prompt for the AI assistant
+        prompt = f"""Answer the question in your own words as truthfully as possible from the context given to you.\nIf you do not know the answer to the question, simply respond with "I don't know. Can you ask another question".\nIf questions are asked where there is no relevant context available, simply respond with "I don't know. Please ask a question relevant to the documents"\n\nCONTEXT: {context}\n\nHUMAN: {query}\nASSISTANT:"""
+
+        return prompt
+    
     @utils.enable_chat_history
     def main(self):
 
         user_query = st.chat_input(placeholder="Ask me anything!")
 
+        # check 
+        # Start the conversation by introducing the AI assistant
+        self.manage_chat_history("system", "You are a helpful assistant.")
+
         if user_query:
-            qa_chain = self.setup_qa_chain()
+            
+            vectorstore = self.get_vectorstore_instance()
 
             utils.display_msg(user_query, 'user')
 
-            with st.chat_message("assistant",avatar="https://i.imgur.com/kke7zXp.png"):
+            with st.chat_message("assistant",avatar="https://imgtr.ee/images/2023/08/09/3e16c073fb5ee87ab9770afa1ed06755.png"):
+                
+                query = self.create_input_prompt(vectorstore=vectorstore,query=user_query)
+
+                # Add user's query to the chat history
+                self.manage_chat_history("user", query)
+
+                # Get the AI assistant's response
+                response = self.get_gpt_response(messages=st.session_state.chat_messages)
+
+                # def stream_response(response):
                 st_cb = StreamHandler(st.empty())
-                response = qa_chain.run(user_query, callbacks=[st_cb]) # 
-                st.session_state.messages.append({"role": "assistant", "content": response})
+                resp_for_chat_history = ""
+                for chunk in response:
+                    if 'delta' in chunk['choices'][0] and 'content' in chunk['choices'][0]['delta']:
+                        resp_for_chat_history += chunk['choices'][0]['delta']['content']
+                        st_cb.on_llm_new_token(chunk['choices'][0]['delta']['content'])
 
-template = f"{os.getenv('OPENAI_GPT_INSTRUCTIONS')}" + '\n```{documents}```'
+                st.session_state.messages.append({"role": "assistant", "content": resp_for_chat_history})
 
-system_message_prompt = SystemMessagePromptTemplate.from_template(template)
-
-human_template = '{question}'
-human_message_prompt = HumanMessagePromptTemplate.from_template(
-    human_template)
-chat_prompt = ChatPromptTemplate.from_messages(
-    [system_message_prompt, human_message_prompt])
-
-# chain = LLMChain(llm=llm, prompt=chat_prompt)
 
 if __name__ == "__main__":
-    obj = CustomDataChatbot()
-    obj.main()
+
 
     if "index" in st.session_state:
-
-        pass
-        
-        # query = st.text_input('Enter a question: ')
-
-        # if query:
-        #     start_time = time.perf_counter()
-
-        #     st.write("Starting the search operation...")
-            
-        #     docs = st.session_state.index.similarity_search(query, k=3)
-
-        #     # st.write(num_tokens_from_string(docs))  
-
-        #     with st.expander("Show Matched Chunks"):
-        #         for idx, doc in enumerate(docs):
-        #             st.write(f"**Chunk # {idx+1}**")
-        #             st.write(f"*{doc.page_content}*")
-        #             st.json(doc.metadata, expanded=False)
-
-        #     st.write("Found relevant docs, proceeding to make the query...")
-
-            # You can uncomment the line below and disable the answer fetching from the other method to jump to chain method, which you were using initially
-            # answer = chain.run(documents=docs, question=query)
-
-            # This section uses chat completion models to generate the results. You can change the model to text-ada-001 or other models to compare the results from them
-            # llm_light = OpenAI(model_name="text-davinci-003",
-            #                     temperature=settings.OPENAI_TEMPERATURE, openai_api_key=settings.OPENAI_API_KEY)
-            # answer = llm_light(
-            # f"{settings.OPENAI_GPT_INSTRUCTIONS}/n{query}/n/nUse this context only:/n{docs}")
-
-            # You can uncomment the line below and disable the answer fetching from the other method to jump to GPT-4 chat mode
-            # answer = llm(chat_prompt.format_prompt(documents=[doc.page_content for doc in docs], question=query).to_messages()).content
-
-            # end_time = time.perf_counter()
-            # st.success(answer)
-            # elapsed_time = end_time - start_time
-            # st.write(f"\nElapsed time: {round(float(elapsed_time), 3)} secs")
+        obj = CustomDataChatbot()
+        obj.main()
 
     else:
         st.warning("Please create a knowledgeBase first!")
