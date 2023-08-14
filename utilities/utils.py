@@ -1,31 +1,21 @@
 import os
 from langchain.document_loaders import Docx2txtLoader
-from typing import Any, Dict, List, Union
+from typing import List
 from langchain.document_loaders import PyMuPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.chains.qa_with_sources import load_qa_with_sources_chain
-from langchain.llms import OpenAI
 from langchain.vectorstores import VectorStore
 from langchain.vectorstores.faiss import FAISS
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.embeddings import OpenAIEmbeddings
-from .prompts import STUFF_PROMPT
 import pandas as pd
 import tempfile
 import tiktoken
-import fitz  # PyMuPDF
 import re
-import pytesseract
-from PIL import Image
-from pdf2image import convert_from_path
+
 from langchain.docstore.document import Document
 import unicodedata
 import pinecone
 from langchain.vectorstores import FAISS
-from langchain.document_loaders import JSONLoader
-
-# pytesseract.pytesseract.tesseract_cmd = r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
-add_path_for_poppler = False
 
 from dotenv import load_dotenv
 
@@ -185,47 +175,6 @@ def parse_readable_pdf(content):
 
     return pdf_data
 
-def check_if_pdf_is_scanned(file_path):
-    doc = fitz.open(file_path)
-    text = ""
-    for page in doc:
-        # Merge hyphenated words
-        content = page.get_text()
-        text += content
-
-    if text:
-        return True
-    else:
-        return False
-    
-def parse_pdf(content):
-
-    # Assuming the content is in bytes format, save it temporarily
-    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_file:
-        temp_file.write(content)
-        temp_file_path = temp_file.name
-
-    if check_if_pdf_is_scanned(file_path=temp_file_path):
-        pdf_data = parse_readable_pdf(temp_file_path)
-        print("PDF is a text-readable one!")
-        return pdf_data
-    else:
-        print("PDF is a scanned one!")
-        docs = []
-        if add_path_for_poppler:
-            images = convert_from_path(temp_file_path, poppler_path="C:\\Program Files\\poppler-0.68.0\\bin")
-        else:
-            images = convert_from_path(temp_file_path)
-        for i in range(len(images)):
-            content = pytesseract.image_to_string(images[i], lang='por')
-            content = re.sub(r"(\w+)-\n(\w+)", r"\1\2", content)
-            # Fix newlines in the middle of sentences
-            content = re.sub(r"(?<!\n\s)\n(?!\s\n)", " ", content.strip())
-            # Remove multiple newlines
-            content = re.sub(r"\n\s*\n", "\n\n", content)
-            docs.append(Document(page_content=content, metadata={"path": temp_file_path, "page": i}))
-
-        return docs
     
 def remove_files_from_pinecone(path):
     
