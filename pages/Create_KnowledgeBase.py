@@ -2,7 +2,7 @@ import streamlit as st
 from utilities.utils import (
     refined_docs,
     parse_docx,
-    parse_pdf,
+    parse_readable_pdf,
     parse_xlsx,
     parse_csv,
     num_tokens_from_string,
@@ -37,9 +37,9 @@ if uploaded_files:
 
         if file_extension == 'PDF':
             if docs is None:
-                docs = parse_pdf(file_content)
+                docs = parse_readable_pdf(file_content)
             else:
-                docs = docs + parse_pdf(file_content)
+                docs = docs + parse_readable_pdf(file_content)
         elif file_extension == 'DOCX':
             if docs is None:
                 docs = parse_docx(file_content)
