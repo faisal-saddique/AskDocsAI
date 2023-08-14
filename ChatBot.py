@@ -67,7 +67,7 @@ class CustomDataChatbot:
     # Function to retrieve matching chunks from the vector store for a given query
     def get_matching_chunks_from_vecstore(self, query: str):
 
-        # Perform similarity search in the vector store and get the top 4 most similar documents
+        # Perform similarity search in the vector store and get the top 3 most similar documents
         docs = st.session_state.index.similarity_search(query, k=3)
 
         st.error(len(docs))
