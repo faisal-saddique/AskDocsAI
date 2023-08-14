@@ -11,7 +11,7 @@ from streaming import StreamHandler
 
 sidebar()
 
-st.title("Ask Docs AI 🤖")
+st.title("Ask more Docs AI 🤖")
 
 # Load environment variables from .env file
 load_dotenv()
@@ -71,7 +71,7 @@ class CustomDataChatbot:
     # Function to retrieve matching chunks from the vector store for a given query
     def get_matching_chunks_from_vecstore(self, vectorstore, query: str):
 
-        # Perform similarity search in the vector store and get the top 3 most similar documents
+        # Perform similarity search in the vector store and get the top 4 most similar documents
         docs = vectorstore.similarity_search(query, k=4)
 
         with st.expander("Show Matched Chunks"):
