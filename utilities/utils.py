@@ -186,8 +186,13 @@ def create_index_from_docs(docs: List[Document]) -> VectorStore:
 
     return index
 
-def parse_readable_pdf(file_path):  
-    pdf_loader = PyMuPDFLoader(file_path)
+def parse_readable_pdf(content):
+    # Assuming the content is in bytes format, save it temporarily
+    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_file:
+        temp_file.write(content)
+        temp_file_path = temp_file.name  
+
+    pdf_loader = PyMuPDFLoader(temp_file_path)
     pdf_data = pdf_loader.load()  # Load PDF file
 
     for doc in pdf_data:
