@@ -78,7 +78,7 @@ class CustomDataChatbot:
         with st.expander("Show Matched Chunks"):
             for idx, doc in enumerate(docs):
                 st.write(f"**Chunk # {idx+1}**")
-                st.text(f"{doc.page_content}")
+                st.write(f"{doc.page_content}")
                 st.json(doc.metadata, expanded=False)
 
         # Prepare a formatted string with the content of each document
