@@ -33,10 +33,6 @@ class CustomDataChatbot:
         num_tokens = len(encoding.encode(string))
         return num_tokens
 
-    # @st.cache_resource
-    def get_vectorstore_instance(self):
-        vectordb =  st.session_state.index
-        return vectordb
 
     # Function to manage chat history by adding messages and handling token limits
     def manage_chat_history(self, role, content):
@@ -69,10 +65,10 @@ class CustomDataChatbot:
 
     @st.spinner('Analyzing documents..')
     # Function to retrieve matching chunks from the vector store for a given query
-    def get_matching_chunks_from_vecstore(self, vectorstore, query: str):
+    def get_matching_chunks_from_vecstore(self, query: str):
 
         # Perform similarity search in the vector store and get the top 4 most similar documents
-        docs = vectorstore.similarity_search(query, k=3)
+        docs = st.session_state.index.similarity_search(query, k=3)
 
         st.error(len(docs))
         with st.expander("Show Matched Chunks"):
@@ -89,10 +85,10 @@ class CustomDataChatbot:
         return context
 
     # Function to create an input prompt for the chat with the AI assistant
-    def create_input_prompt(self, vectorstore, query: str):
+    def create_input_prompt(self, query: str):
 
         # Get the relevant context based on the query from the vector store
-        context = self.get_matching_chunks_from_vecstore(vectorstore=vectorstore, query=query)
+        context = self.get_matching_chunks_from_vecstore(query=query)
 
         # Combine the context and query to form the input prompt for the AI assistant
         prompt = f"""Answer the question in your own words as truthfully as possible from the context given to you.\nIf you do not know the answer to the question, simply respond with "I don't know. Can you ask another question".\nIf questions are asked where there is no relevant context available, simply respond with "I don't know. Please ask a question relevant to the documents"\n\nCONTEXT: {context}\n\nHUMAN: {query}\nASSISTANT:"""
@@ -109,14 +105,12 @@ class CustomDataChatbot:
         self.manage_chat_history("system", "You are a helpful assistant.")
 
         if user_query:
-            
-            vectorstore = self.get_vectorstore_instance()
 
             utils.display_msg(user_query, 'user')
 
             with st.chat_message("assistant",avatar="https://imgtr.ee/images/2023/08/09/3e16c073fb5ee87ab9770afa1ed06755.png"):
                 
-                query = self.create_input_prompt(vectorstore=vectorstore,query=user_query)
+                query = self.create_input_prompt(query=user_query)
 
                 # Add user's query to the chat history
                 self.manage_chat_history("user", query)
