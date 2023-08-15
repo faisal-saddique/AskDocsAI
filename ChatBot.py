@@ -8,6 +8,7 @@ from langchain.embeddings import OpenAIEmbeddings
 import streamlit as st
 from utilities.sidebar import sidebar
 from streaming import StreamHandler
+import uuid
 
 sidebar()
 
@@ -74,7 +75,7 @@ class CustomDataChatbot:
         with st.expander("Show Matched Chunks"):
             for idx, doc in enumerate(docs):
                 st.write(f"**Chunk # {idx+1}**")
-                st.download_button("Download Original File", st.session_state.files_for_download[f"{doc.metadata['source']}"], file_name=doc.metadata["source"], mime="application/octet-stream", use_container_width=True)
+                st.download_button("Download Original File", st.session_state.files_for_download[f"{doc.metadata['source']}"], file_name=doc.metadata["source"], mime="application/octet-stream", key=uuid.uuid4(), use_container_width=True)
                 st.write(f"{doc.page_content}")
                 st.json(doc.metadata, expanded=False)
 
