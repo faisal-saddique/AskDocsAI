@@ -38,7 +38,7 @@ try:
 
             if file_extension == 'PDF':
                 if docs is None:
-                    docs = parse_readable_pdf(file_content)
+                    docs = parse_readable_pdf(file_content,file.name)
                 else:
                     docs = docs + parse_readable_pdf(file_content)
             elif file_extension == 'DOCX':

@@ -68,7 +68,7 @@ def get_all_filenames_and_their_extensions(source_folder):
 
     return file_list
 
-def parse_docx(content):
+def parse_docx(content,filename):
     # Assuming the content is in bytes format, save it temporarily
     with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as temp_file:
         temp_file.write(content)
@@ -79,9 +79,10 @@ def parse_docx(content):
     # data = [re.sub(r"\n\s*\n", "\n\n", obj.page_content) for obj in data]
     for d in data:
         d.page_content = re.sub(r"\n\s*\n", "\n\n", d.page_content)
+        d.metadata["source"] = filename
     return data
 
-def parse_xlsx(content):
+def parse_xlsx(content,filename):
     # Assuming the content is in bytes format, save it temporarily
     with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
         temp_file.write(content)
@@ -103,11 +104,11 @@ def parse_xlsx(content):
         loader = CSVLoader(file_path=temp_file.name,encoding='utf-8')
         data = loader.load()
         for doc in data:
-            doc.metadata["source"] = temp_file_path
+            doc.metadata["source"] = filename
             
     return data
 
-def parse_csv(content):
+def parse_csv(content,filename):
     # Create a temporary file in memory
     with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as temp_file:
         # Write the CSV string to the temporary file
@@ -118,8 +119,7 @@ def parse_csv(content):
         loader = CSVLoader(file_path=temp_file.name,encoding='utf-8')
         data = loader.load()
         for doc in data:
-            doc.metadata["source"] = temp_file.name
-            
+            doc.metadata["source"] = filename
     return data
 
 def refined_docs(docs):
@@ -129,10 +129,12 @@ def refined_docs(docs):
         separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""],
         length_function = len,
     )
+    
+    for doc in docs:
+        doc.metadata["filename_key"] = convert_filename_to_key(doc.metadata["source"])
 
     print(f"Lenght of docs is {len(docs)}")
     return text_splitter.split_documents(docs)
-
 
 def num_tokens_from_string(chunked_docs: List[Document]) -> int:
 
@@ -156,7 +158,7 @@ def create_index_from_docs(docs: List[Document]) -> VectorStore:
 
     return index
 
-def parse_readable_pdf(content):
+def parse_readable_pdf(content,filename):
     # Assuming the content is in bytes format, save it temporarily
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_file:
         temp_file.write(content)
@@ -172,6 +174,8 @@ def parse_readable_pdf(content):
         doc.page_content = re.sub(r"(?<!\n\s)\n(?!\s\n)", " ", doc.page_content.strip())
         # Remove multiple newlines
         doc.page_content = re.sub(r"\n\s*\n", "\n\n", doc.page_content)
+
+        doc.metadata["source"] = filename
 
     return pdf_data
 
