@@ -34,8 +34,10 @@ try:
             st.write(f'File: {file.name}, Extension: {file_extension}')
             file_content = file.read()  # Read the content of the uploaded file
             
+            if "files_for_download" not in st.session_state:
+                st.session_state.files_for_download = {}
             st.session_state.files_for_download[f"{file.name}"] = file_content
-            
+
             # st.write(file_content)
 
             if file_extension == 'PDF':

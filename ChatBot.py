@@ -70,7 +70,7 @@ class CustomDataChatbot:
         # Perform similarity search in the vector store and get the top 3 most similar documents
         docs = st.session_state.index.similarity_search(query, k=3)
 
-        st.error(len(docs))
+        # st.error(len(docs))
         with st.expander("Show Matched Chunks"):
             for idx, doc in enumerate(docs):
                 st.write(f"**Chunk # {idx+1}**")
