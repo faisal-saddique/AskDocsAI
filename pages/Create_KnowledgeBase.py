@@ -44,25 +44,25 @@ try:
                 if docs is None:
                     docs = parse_readable_pdf(file_content,file.name)
                 else:
-                    docs = docs + parse_readable_pdf(file_content)
+                    docs = docs + parse_readable_pdf(file_content,file.name)
 
             elif file_extension == 'DOCX':
                 if docs is None:
-                    docs = parse_docx(file_content)
+                    docs = parse_docx(file_content,file.name)
                 else:
-                    docs = docs + parse_docx(file_content)
+                    docs = docs + parse_docx(file_content,file.name)
 
             elif file_extension == 'XLSX':
                 if docs is None:
-                    docs = parse_xlsx(file_content)
+                    docs = parse_xlsx(file_content,file.name)
                 else:
-                    docs = docs + parse_xlsx(file_content)
+                    docs = docs + parse_xlsx(file_content,file.name)
             
             elif file_extension == 'CSV':
                 if docs is None:
-                    docs = parse_csv(file_content)
+                    docs = parse_csv(file_content,file.name)
                 else:
-                    docs = docs + parse_csv(file_content)
+                    docs = docs + parse_csv(file_content,file.name)
             else:
                 raise ValueError("File type not supported!")
             
