@@ -33,7 +33,9 @@ try:
             file_extension = file.name.split(".")[-1].upper()
             st.write(f'File: {file.name}, Extension: {file_extension}')
             file_content = file.read()  # Read the content of the uploaded file
-
+            
+            st.session_state.files_for_download[f"{file.name}"] = file_content
+            
             # st.write(file_content)
 
             if file_extension == 'PDF':
@@ -41,7 +43,7 @@ try:
                     docs = parse_readable_pdf(file_content,file.name)
                 else:
                     docs = docs + parse_readable_pdf(file_content)
-                    
+
             elif file_extension == 'DOCX':
                 if docs is None:
                     docs = parse_docx(file_content)
