@@ -47,7 +47,7 @@ class CustomDataChatbot:
         if chat_history_tokens >= 3500:
             print("Avoiding token limit hit, removing extra chat messages...")
             # Keep only the system prompt and last 2 messages to reduce token usage
-            messages = [st.session_state.chat_messages[0]] + st.session_state.chat_messages[-2:]
+            st.session.chat_messages = [st.session_state.chat_messages[0]] + st.session_state.chat_messages[-2:]
 
     # Function to get the AI assistant's response using OpenAI's ChatCompletion API
     def get_gpt_response(self, messages):
@@ -118,6 +118,7 @@ class CustomDataChatbot:
                 # Get the AI assistant's response
                 response = self.get_gpt_response(messages=st.session_state.chat_messages)
 
+
                 # def stream_response(response):
                 st_cb = StreamHandler(st.empty())
                 resp_for_chat_history = ""
@@ -126,7 +127,7 @@ class CustomDataChatbot:
                         resp_for_chat_history += chunk['choices'][0]['delta']['content']
                         st_cb.on_llm_new_token(chunk['choices'][0]['delta']['content'])
 
-                st.session_state.messages.append({"role": "assistant", "content": resp_for_chat_history})
+                self.manage_chat_history("assistant",resp_for_chat_history)
 
 
 if __name__ == "__main__":

@@ -124,12 +124,12 @@ def parse_csv(content,filename):
 
 def refined_docs(docs):
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size = 2000, # You can play around with this parameter to adjust the length of each chunk
+        chunk_size = 1500, # You can play around with this parameter to adjust the length of each chunk
         chunk_overlap  = 10,
         separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""],
         length_function = len,
     )
-    
+
     for doc in docs:
         doc.metadata["filename_key"] = convert_filename_to_key(doc.metadata["source"])
 

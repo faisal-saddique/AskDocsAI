@@ -41,6 +41,7 @@ try:
                     docs = parse_readable_pdf(file_content,file.name)
                 else:
                     docs = docs + parse_readable_pdf(file_content)
+                    
             elif file_extension == 'DOCX':
                 if docs is None:
                     docs = parse_docx(file_content)
