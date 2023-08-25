@@ -1,6 +1,7 @@
 import os
 import random
 import streamlit as st
+import uuid 
 
 #decorator
 def enable_chat_history(func):
@@ -23,7 +24,14 @@ def enable_chat_history(func):
         if msg["role"] == "assistant":
             if "index" in st.session_state:
             # print(msg["content"])
-                st.chat_message(msg["role"],avatar="https://i.imgur.com/kke7zXp.png").write(msg["content"])
+                with st.chat_message(msg["role"],avatar="https://e7.pngegg.com/pngimages/139/563/png-clipart-virtual-assistant-computer-icons-business-assistant-face-service-thumbnail.png"):
+                    st.write(msg["content"])
+                    if "matching_docs" in msg:
+                        with st.expander("See sources"):
+                            for doc in msg['matching_docs']:
+                                st.info(f"\nPage Content: {doc.page_content}")
+                                st.json(doc.metadata, expanded= False)
+                                st.download_button("Download Original File", st.session_state.files_for_download[f"{doc.metadata['source']}"], file_name=doc.metadata["source"], mime="application/octet-stream", key=uuid.uuid4(), use_container_width=True)
         else:
             st.chat_message(msg["role"]).write(msg["content"])
 
@@ -32,6 +40,7 @@ def enable_chat_history(func):
     return execute
 
 def display_msg(msg, author):
+
     """Method to display message on the UI
 
     Args:

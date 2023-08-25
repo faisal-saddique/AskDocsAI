@@ -1,4 +1,5 @@
 import streamlit as st
+from datetime import datetime
 
 description = """
 **AskDocsAI** is an AI-powered question-answering bot built using OpenAI's GPT models and FAISS vector search. It leverages language embeddings and vector stores to provide efficient and accurate search results.
@@ -14,7 +15,21 @@ The bot also provides timing information, displaying the elapsed time for the se
 To use **AskDocsAI**, simply enter your question in the provided text input field, and the bot will retrieve relevant document chunks and generate an answer based on the given query.
 """
 
+
 def sidebar():
     with st.sidebar:
+        if "session_chat_history" in st.session_state:
+            # Generate a unique filename using the current timestamp
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            file_name = f"chat_history_{timestamp}.txt"
+            chat_history = st.session_state.session_chat_history
+            chat_text = "\n".join(
+                [f"Query: {query}\nAnswer: {answer}\n-----" for query, answer in chat_history])
+            if not chat_history:
+                st.download_button('Download Session Chat', chat_text,
+                                   file_name=file_name, use_container_width=True, disabled=True)
+            else:
+                st.download_button('Download Session Chat', chat_text,
+                                   file_name=file_name, use_container_width=True)
         st.header("About")
         st.write(f"{description}")

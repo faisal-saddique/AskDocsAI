@@ -7,6 +7,5 @@ class StreamHandler(BaseCallbackHandler):
         self.text = initial_text
 
     def on_llm_new_token(self, token: str, **kwargs):
-        print(token)
         self.text += token
         self.container.markdown(self.text)

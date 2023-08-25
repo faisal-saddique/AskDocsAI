@@ -9,10 +9,24 @@ import streamlit as st
 from utilities.sidebar import sidebar
 from streaming import StreamHandler
 import uuid
+from langchain.memory import StreamlitChatMessageHistory
+# Import required libraries for different functionalities
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.llms import OpenAI
+from langchain.chains import ConversationalRetrievalChain
+from langchain.memory import ConversationBufferMemory
+from langchain.chat_models import ChatOpenAI
 
-sidebar()
+from langchain.prompts.chat import (
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+)
 
 st.title("Ask Docs AI 🤖")
+
+if "session_chat_history" not in st.session_state:
+    st.session_state.session_chat_history = []
 
 # Load environment variables from .env file
 load_dotenv()
@@ -23,121 +37,93 @@ embeddings = OpenAIEmbeddings()
 class CustomDataChatbot:
 
     def __init__(self):
-        self.openai_model = "gpt-3.5-turbo"
         if "chat_messages" not in st.session_state:
             st.session_state.chat_messages = []
         openai.api_key = os.getenv("OPENAI_API_KEY")
 
-    # Function to count the number of tokens in a text string
-    def num_tokens_from_string(self, string: str, encoding_name: str = "cl100k_base") -> int:
-        encoding = tiktoken.get_encoding(encoding_name)
-        num_tokens = len(encoding.encode(string))
-        return num_tokens
+    def create_qa_chain(self):
 
+        # Define the system message template
+        system_template = """You are a helpful assistant. Always end your sentence asking your users if they need more help. Use the following pieces of context to answer the users question at the end. 
+        If you cannot find the answer from the pieces of context, just say that you don't know, don't try to make up an answer. If the question is a greeting or goodbye, then be flexible and respond accordingly.
+        ----------------
+        {context}
+        ----------------
+        
+        This is the history of your conversation with the user so far:
+        ----------------
+        {chat_history}
+        ----------------"""
 
-    # Function to manage chat history by adding messages and handling token limits
-    def manage_chat_history(self, role, content):
+        # Create the chat prompt templates
 
-        st.session_state.chat_messages.append({"role": f"{role}", "content": f"{content}"})
+        messages = [
+            SystemMessagePromptTemplate.from_template(system_template),
+            HumanMessagePromptTemplate.from_template(
+                "Question:```{question}```")
+        ]
 
-        # Count the number of tokens used in the chat history
-        chat_history_tokens = self.num_tokens_from_string(json.dumps(st.session_state.chat_messages))
-        print(f"\nChat history consumes {chat_history_tokens} tokens up till now\n")
+        qa_prompt = ChatPromptTemplate.from_messages(messages)
 
-        # Check if the token limit (3500 tokens) is about to be hit, if yes, remove extra messages
-        if chat_history_tokens >= 3500:
-            print("Avoiding token limit hit, removing extra chat messages...")
-            # Keep only the system prompt and last 2 messages to reduce token usage
-            st.session.chat_messages = [st.session_state.chat_messages[0]] + st.session_state.chat_messages[-2:]
+        # Optionally, specify your own session_state key for storing messages
+        msgs = StreamlitChatMessageHistory(key="special_app_key")
 
-    # Function to get the AI assistant's response using OpenAI's ChatCompletion API
-    def get_gpt_response(self, messages):
-        # Make a request to the GPT-3.5 Turbo model to get the response
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=messages,
-            temperature=0,
-            max_tokens=1024,
-            stream=True
+        memory = ConversationBufferMemory(
+            memory_key="chat_history", chat_memory=msgs)
+
+        # Create a Pinecone vector store using an existing index and OpenAI embeddings
+        vectorstore = st.session_state.index
+
+        # Create a ConversationalRetrievalChain for question answering
+        st.session_state.qa = ConversationalRetrievalChain.from_llm(
+            ChatOpenAI(streaming=True,
+                       temperature=0, model="gpt-3.5-turbo"),  # Chat model configuration
+            # Use the Pinecone vector store for retrieval
+            vectorstore.as_retriever(k=4),
+            # Another OpenAI model for condensing questions
+            condense_question_llm=OpenAI(temperature=0),
+            combine_docs_chain_kwargs={"prompt": qa_prompt},
+            # memory=memory,  # Provide the conversation memory
+            return_source_documents=True,
         )
 
-        # Extract and return the content of the AI assistant's response
-        return response
-
-    @st.spinner('Analyzing documents..')
-    # Function to retrieve matching chunks from the vector store for a given query
-    def get_matching_chunks_from_vecstore(self, query: str):
-
-        # Perform similarity search in the vector store and get the top 3 most similar documents
-        docs = st.session_state.index.similarity_search(query, k=3)
-
-        # st.error(len(docs))
-        with st.expander("Show Matched Chunks"):
-            for idx, doc in enumerate(docs):
-                st.write(f"**Chunk # {idx+1}**")
-                st.download_button("Download Original File", st.session_state.files_for_download[f"{doc.metadata['source']}"], file_name=doc.metadata["source"], mime="application/octet-stream", key=uuid.uuid4(), use_container_width=True)
-                st.write(f"{doc.page_content}")
-                st.json(doc.metadata, expanded=False)
-
-        # Prepare a formatted string with the content of each document
-        context = "\n--------------------------------------\n"
-        for doc in docs:
-            context += doc.page_content + "\n--------------------------------------\n"
-
-        return context
-
-    # Function to create an input prompt for the chat with the AI assistant
-    def create_input_prompt(self, query: str):
-
-        # Get the relevant context based on the query from the vector store
-        context = self.get_matching_chunks_from_vecstore(query=query)
-
-        # Combine the context and query to form the input prompt for the AI assistant
-        prompt = f"""Answer the question in your own words as truthfully as possible from the context given to you.\nIf you do not know the answer to the question, simply respond with "I don't know. Can you ask another question".\nIf questions are asked where there is no relevant context available, simply respond with "I don't know. Please ask a question relevant to the documents"\n\nCONTEXT: {context}\n\nHUMAN: {query}\nASSISTANT:"""
-
-        return prompt
-    
     @utils.enable_chat_history
     def main(self):
 
+        if "chat_history" not in st.session_state:
+            st.session_state["chat_history"] = []
         user_query = st.chat_input(placeholder="Ask me anything!")
-
-        # check 
-        # Start the conversation by introducing the AI assistant
-        self.manage_chat_history("system", "You are a helpful assistant.")
 
         if user_query:
 
             utils.display_msg(user_query, 'user')
 
-            with st.chat_message("assistant",avatar="https://imgtr.ee/images/2023/08/09/3e16c073fb5ee87ab9770afa1ed06755.png"):
-                
-                query = self.create_input_prompt(query=user_query)
-
-                # Add user's query to the chat history
-                self.manage_chat_history("user", query)
-
-                # Get the AI assistant's response
-                response = self.get_gpt_response(messages=st.session_state.chat_messages)
-
-
-                # def stream_response(response):
-                st_cb = StreamHandler(st.empty())
-                resp_for_chat_history = ""
-                for chunk in response:
-                    if 'delta' in chunk['choices'][0] and 'content' in chunk['choices'][0]['delta']:
-                        resp_for_chat_history += chunk['choices'][0]['delta']['content']
-                        st_cb.on_llm_new_token(chunk['choices'][0]['delta']['content'])
-
-                self.manage_chat_history("assistant",resp_for_chat_history)
+            with st.chat_message("assistant", avatar="https://e7.pngegg.com/pngimages/139/563/png-clipart-virtual-assistant-computer-icons-business-assistant-face-service-thumbnail.png"):
+                st_callback = StreamHandler(st.empty())
+                if 'qa' not in st.session_state:
+                    st.session_state.qa = None
+                    self.create_qa_chain()
+                result = st.session_state.qa({"question": user_query, "chat_history": st.session_state.chat_history}, callbacks=[
+                                             st_callback])  # ,"chat_history": st.session_state.history
+                with st.expander("See sources"):
+                    for doc in result['source_documents']:
+                        st.info(f"\nPage Content: {doc.page_content}")
+                        st.json(doc.metadata, expanded=False)
+                        st.download_button("Download Original File", st.session_state.files_for_download[f"{doc.metadata['source']}"], file_name=doc.metadata[
+                                           "source"], mime="application/octet-stream", key=uuid.uuid4(), use_container_width=True)
+                st.session_state.messages.append(
+                    {"role": "assistant", "content": result['answer'], "matching_docs": result['source_documents']})
+                st.session_state.session_chat_history.append(
+                    (user_query, result["answer"]))
+                # st.warning(st.session_state.session_chat_history)
+                st.session_state.chat_history.append(
+                    (user_query, result["answer"]))
 
 
 if __name__ == "__main__":
-
-
     if "index" in st.session_state:
         obj = CustomDataChatbot()
         obj.main()
-
+        sidebar()
     else:
         st.warning("Please create a knowledgeBase first!")
