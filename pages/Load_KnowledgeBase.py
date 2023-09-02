@@ -7,8 +7,25 @@ from langchain.embeddings import OpenAIEmbeddings
 from dotenv import load_dotenv
 
 load_dotenv()
-# Create a Streamlit page for uploading and loading the zip file
 
+def is_valid_zip_contents(extracted_dir):
+    # Check if the extracted directory contains only two files with the correct name and extensions
+    files = os.listdir(extracted_dir)
+    if len(files) != 2:
+        return False
+    
+    # Check if both files have the same name
+    file_names = [os.path.splitext(file)[0] for file in files]
+    if len(set(file_names)) != 1:
+        return False
+    
+    # Check if one file has the extension '.faiss' and the other has '.pkl'
+    if ('.faiss' not in files[0] and '.pkl' not in files[1]) and ('.faiss' not in files[1] and '.pkl' not in files[0]):
+        return False
+    
+    return True
+
+# Create a Streamlit page for uploading and loading the zip file
 st.title("Upload and Load Existing KnowledgeBase")
 
 # File upload widget
@@ -23,18 +40,22 @@ if uploaded_zip:
     with zipfile.ZipFile(uploaded_zip, 'r') as zip_ref:
         zip_ref.extractall(temp_dir)
 
-    embeddings = OpenAIEmbeddings()  # type: ignore
-    # Load the FAISS index from the temporary directory
-    try:
-        if "index" not in st.session_state:
-            st.session_state.index = FAISS.load_local(temp_dir, embeddings)
-        else:
-            st.session_state.index = FAISS.load_local(temp_dir, embeddings)
-        st.success("Index loaded successfully!")
-        st.session_state["is_index_loaded"] = True
-        # Now you can use 'new_db' for further operations
-    except Exception as e:
-        st.error(f"An error occurred while loading the FAISS index: {e}")
+    # Check if the extracted directory contains valid contents
+    if is_valid_zip_contents(temp_dir):
+        embeddings = OpenAIEmbeddings()  # type: ignore
+        # Load the FAISS index from the temporary directory
+        try:
+            if "index" not in st.session_state:
+                st.session_state.index = FAISS.load_local(temp_dir, embeddings)
+            else:
+                st.session_state.index = FAISS.load_local(temp_dir, embeddings)
+            st.success("Index loaded successfully!")
+            st.session_state["is_index_loaded"] = True
+            # Now you can use 'new_db' for further operations
+        except Exception as e:
+            st.error(f"An error occurred while loading the FAISS index: {e}")
+    else:
+        st.error("Invalid zip file contents. Please make sure the zip contains only two files with the same name and extensions '.faiss' and '.pkl'.")
 
     # Clean up: Remove the temporary directory
     for root, dirs, files in os.walk(temp_dir):
