@@ -31,6 +31,7 @@ if uploaded_zip:
         else:
             st.session_state.index = FAISS.load_local(temp_dir, embeddings)
         st.success("Index loaded successfully!")
+        st.session_state["is_index_loaded"] = True
         # Now you can use 'new_db' for further operations
     except Exception as e:
         st.error(f"An error occurred while loading the FAISS index: {e}")
