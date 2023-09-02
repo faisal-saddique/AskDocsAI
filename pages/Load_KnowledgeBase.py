@@ -9,10 +9,10 @@ from dotenv import load_dotenv
 load_dotenv()
 # Create a Streamlit page for uploading and loading the zip file
 
-st.title("Upload and Load FAISS Index")
+st.title("Upload and Load Existing KnowledgeBase")
 
 # File upload widget
-uploaded_zip = st.file_uploader("Upload the zip file containing the FAISS index:", type=["zip"])
+uploaded_zip = st.file_uploader("Upload the zip file containing the KnowledgeBase index:", type=["zip"])
 
 if uploaded_zip:
     # Create a temporary directory to extract the zip contents
