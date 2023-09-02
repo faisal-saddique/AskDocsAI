@@ -63,7 +63,7 @@ else:
                         else:
                             docs = docs + parse_readable_pdf(file_content,filename=file.name)
 
-                    if file_extension == 'JSON':
+                    elif file_extension == 'JSON':
                         if docs is None:
                             docs = parse_json(file_content,filename=file.name)
                         else:
