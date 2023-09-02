@@ -8,7 +8,8 @@ __pycache__/
 
 # temp files
 temp.txt
-
+test.py
+test.ipynb_checkpoints
 # Distribution / packaging
 .Python
 build/

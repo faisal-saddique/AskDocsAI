@@ -1,0 +1,5 @@
+,user_id,username,full_name,email,age,gender,address,interests,preferences,posts
+0,1,user1,Alice Johnson,alice@example.com,28,female,"{'street': '456 Elm Street', 'city': 'Cityville', 'state': 'Stateville', 'zip_code': '54321'}","['travel', 'cooking', 'reading']","{'theme': 'light', 'notifications': {'email': 'true', 'push': 'false'}}",[]
+1,2,user2,Bob Smith,bob@example.com,35,male,"{'street': '789 Oak Avenue', 'city': 'Townsville', 'state': 'Countyville', 'zip_code': '98765'}","['sports', 'music', 'gardening']","{'theme': 'dark', 'notifications': {'email': 'true', 'push': 'true'}}",[]
+2,3,user3,Eva Martinez,eva@example.com,42,female,"{'street': '321 Pine Road', 'city': 'Villagetown', 'state': 'Villagestate', 'zip_code': '76543'}","['art', 'history', 'photography']","{'theme': 'light', 'notifications': {'email': 'true', 'push': 'false'}}",[]
+3,4,user4,David Lee,david@example.com,30,male,"{'street': '101 Maple Lane', 'city': 'Woodville', 'state': 'Foreststate', 'zip_code': '12345'}","['technology', 'gaming', 'programming']","{'theme': 'dark', 'notifications': {'email': 'false', 'push': 'true'}}",[]

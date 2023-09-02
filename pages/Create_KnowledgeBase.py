@@ -5,6 +5,7 @@ from utilities.utils import (
     parse_readable_pdf,
     parse_xlsx,
     parse_csv,
+    parse_json,
     num_tokens_from_string,
     add_vectors_to_FAISS
 )
@@ -62,6 +63,12 @@ else:
                         else:
                             docs = docs + parse_readable_pdf(file_content,filename=file.name)
 
+                    if file_extension == 'JSON':
+                        if docs is None:
+                            docs = parse_json(file_content,filename=file.name)
+                        else:
+                            docs = docs + parse_json(file_content,filename=file.name)
+                            
                     elif file_extension == 'DOCX':
                         if docs is None:
                             docs = parse_docx(file_content,filename=file.name)

@@ -12,6 +12,7 @@ import tempfile
 import tiktoken
 import re
 
+import json
 from langchain.docstore.document import Document
 import unicodedata
 import pinecone
@@ -179,6 +180,23 @@ def parse_readable_pdf(content,filename):
 
     return pdf_data
 
+def parse_json(content, filename):
+    # Assuming the content is in bytes format, save it temporarily
+    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp_file:
+        temp_file.write(content)
+        temp_file_path = temp_file.name
+    
+    data = json.load(open(temp_file_path,'r'))
+    df = pd.DataFrame(data)
+    res = json.loads(df.to_json(orient='records'))
+    if len(res):
+        docs = []
+        for i in res:
+            docs.append(Document(page_content=json.dumps(i),metadata={"source":filename}))
+    
+        return docs
+    else:
+        return []
     
 def remove_files_from_pinecone(path):
     

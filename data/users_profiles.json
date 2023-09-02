@@ -1,0 +1,94 @@
+[
+    {
+        "user_id": "1",
+        "username": "user1",
+        "full_name": "Alice Johnson",
+        "email": "alice@example.com",
+        "age": 28,
+        "gender": "female",
+        "address": {
+            "street": "456 Elm Street",
+            "city": "Cityville",
+            "state": "Stateville",
+            "zip_code": "54321"
+        },
+        "interests": ["travel", "cooking", "reading"],
+        "preferences": {
+            "theme": "light",
+            "notifications": {
+                "email": true,
+                "push": false
+            }
+        },
+        "posts": []
+    },
+    {
+        "user_id": "2",
+        "username": "user2",
+        "full_name": "Bob Smith",
+        "email": "bob@example.com",
+        "age": 35,
+        "gender": "male",
+        "address": {
+            "street": "789 Oak Avenue",
+            "city": "Townsville",
+            "state": "Countyville",
+            "zip_code": "98765"
+        },
+        "interests": ["sports", "music", "gardening"],
+        "preferences": {
+            "theme": "dark",
+            "notifications": {
+                "email": true,
+                "push": true
+            }
+        },
+        "posts": []
+    },
+    {
+        "user_id": "3",
+        "username": "user3",
+        "full_name": "Eva Martinez",
+        "email": "eva@example.com",
+        "age": 42,
+        "gender": "female",
+        "address": {
+            "street": "321 Pine Road",
+            "city": "Villagetown",
+            "state": "Villagestate",
+            "zip_code": "76543"
+        },
+        "interests": ["art", "history", "photography"],
+        "preferences": {
+            "theme": "light",
+            "notifications": {
+                "email": true,
+                "push": false
+            }
+        },
+        "posts": []
+    },
+    {
+        "user_id": "4",
+        "username": "user4",
+        "full_name": "David Lee",
+        "email": "david@example.com",
+        "age": 30,
+        "gender": "male",
+        "address": {
+            "street": "101 Maple Lane",
+            "city": "Woodville",
+            "state": "Foreststate",
+            "zip_code": "12345"
+        },
+        "interests": ["technology", "gaming", "programming"],
+        "preferences": {
+            "theme": "dark",
+            "notifications": {
+                "email": false,
+                "push": true
+            }
+        },
+        "posts": []
+    }
+]
