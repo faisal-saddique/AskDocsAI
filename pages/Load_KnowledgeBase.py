@@ -5,8 +5,10 @@ from langchain.vectorstores.faiss import FAISS
 from langchain.embeddings import OpenAIEmbeddings
 
 from dotenv import load_dotenv
+from utilities.sidebar import sidebar
 
 load_dotenv()
+sidebar()
 
 def is_valid_zip_contents(extracted_dir):
     # Check if the extracted directory contains only two files with the correct name and extensions
