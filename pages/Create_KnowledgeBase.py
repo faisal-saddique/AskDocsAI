@@ -96,6 +96,7 @@ else:
                 with st.spinner("Creating Index..."):
                     st.session_state.index = add_vectors_to_FAISS(chunked_docs=chunked_docs)
                     st.success("Done! Please headover to chatbot to start interacting with your data.")
-
+            else:
+                st.error("Please add some files first!")
     except Exception as e:
         st.error(f"An error occured while indexing your documents: {e}\n\nPlease fix the error and try again.")
