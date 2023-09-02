@@ -46,10 +46,20 @@ def download_existing_index():
         st.error("No index found!")
 
 if "uploaded_files_history" in st.session_state:
-    st.title("Existing Index")
+    st.title("Create New KnowledgeBase")
+    st.warning("Index Already Existing.")
+    st.write("Files in Index:")
     for file in st.session_state.uploaded_files_history:
         st.info(f"**{file}**: {st.session_state.uploaded_files_history[file]} KBs")
     download_existing_index()
+    if st.button("Start Over",on_click=del_uf_history,type="secondary",use_container_width=True):
+        st.success("Starting Over again...")
+elif "is_index_loaded" in st.session_state:
+    st.title("Create New KnowledgeBase")
+    st.warning("Index Already Existing.")
+    # for file in st.session_state.uploaded_files_history:
+    #     st.info(f"**{file}**: {st.session_state.uploaded_files_history[file]} KBs")
+    # download_existing_index()
     if st.button("Start Over",on_click=del_uf_history,type="secondary",use_container_width=True):
         st.success("Starting Over again...")
 else:
