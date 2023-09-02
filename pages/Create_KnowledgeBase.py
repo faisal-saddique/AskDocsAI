@@ -10,7 +10,9 @@ from utilities.utils import (
     add_vectors_to_FAISS
 )
 from dotenv import load_dotenv
-
+import zipfile
+import io
+import os
 from utilities.sidebar import sidebar
 
 sidebar()
@@ -101,7 +103,22 @@ else:
                 st.write(f"Number of tokens: \n{no_of_tokens}")
 
                 with st.spinner("Creating Index..."):
-                    st.session_state.index = add_vectors_to_FAISS(chunked_docs=chunked_docs)
+                    index = add_vectors_to_FAISS(chunked_docs=chunked_docs)
+                    st.session_state.index = index
+
+                    # Save the index locally as 'faiss_index'
+                    index.save_local("faiss_index")
+
+                    # Create a zip archive of the 'faiss_index' folder
+                    zip_buffer = io.BytesIO()
+                    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                        for root, dirs, files in os.walk('faiss_index'):
+                            for file in files:
+                                zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), 'faiss_index'))
+
+                    # Offer the zip file as a download button
+                    st.download_button("Download Index", zip_buffer.getvalue(), file_name='faiss_index.zip', key='faiss_index_zip')
+
                     st.success("Done! Please headover to chatbot to start interacting with your data.")
             else:
                 st.error("Please add some files first!")
