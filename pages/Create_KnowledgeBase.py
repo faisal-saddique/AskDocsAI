@@ -14,6 +14,7 @@ import zipfile
 import io
 import os
 from utilities.sidebar import sidebar
+from datetime import datetime
 
 sidebar()
 
@@ -24,11 +25,31 @@ def del_uf_history():
     del st.session_state.uploaded_files_history
     del st.session_state.index
 
+def download_existing_index():
+    if "index" in st.session_state:
+        # Save the index locally
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        index_name = f"faiss_index_{timestamp}"
+        st.session_state.index.save_local(index_name)
+
+        # Create a zip archive of the 'faiss_index' folder
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for root, dirs, files in os.walk(index_name):
+                for file in files:
+                    zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), index_name))
+
+
+        # Offer the zip file as a download button
+        st.download_button("Download Index", zip_buffer.getvalue(), file_name=f'{index_name}.zip', key='faiss_index_zip', use_container_width=True)
+    else:
+        st.error("No index found!")
+
 if "uploaded_files_history" in st.session_state:
     st.title("Existing Index")
     for file in st.session_state.uploaded_files_history:
         st.info(f"**{file}**: {st.session_state.uploaded_files_history[file]} KBs")
-
+    download_existing_index()
     if st.button("Start Over",on_click=del_uf_history,type="secondary",use_container_width=True):
         st.success("Starting Over again...")
 else:
@@ -103,23 +124,9 @@ else:
                 st.write(f"Number of tokens: \n{no_of_tokens}")
 
                 with st.spinner("Creating Index..."):
-                    index = add_vectors_to_FAISS(chunked_docs=chunked_docs)
-                    st.session_state.index = index
-
-                    # Save the index locally as 'faiss_index'
-                    index.save_local("faiss_index")
-
-                    # Create a zip archive of the 'faiss_index' folder
-                    zip_buffer = io.BytesIO()
-                    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                        for root, dirs, files in os.walk('faiss_index'):
-                            for file in files:
-                                zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), 'faiss_index'))
-
-                    # Offer the zip file as a download button
-                    st.download_button("Download Index", zip_buffer.getvalue(), file_name='faiss_index.zip', key='faiss_index_zip')
-
+                    st.session_state.index = add_vectors_to_FAISS(chunked_docs=chunked_docs)
                     st.success("Done! Please headover to chatbot to start interacting with your data.")
+                    download_existing_index()
             else:
                 st.error("Please add some files first!")
     except Exception as e:
