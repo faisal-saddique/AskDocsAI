@@ -32,7 +32,11 @@ def enable_chat_history(func):
                                 st.success(f"Filename: {doc.metadata['source']}")
                                 st.info(f"\nPage Content: {doc.page_content}")
                                 st.json(doc.metadata, expanded= False)
-                                st.download_button("Download Original File", st.session_state.files_for_download[f"{doc.metadata['source']}"], file_name=doc.metadata["source"], mime="application/octet-stream", key=uuid.uuid4(), use_container_width=True)
+                                if "is_index_loaded" in st.session_state and st.session_state.is_index_loaded:
+                                    pass
+                                else:
+                                    st.download_button("Download Original File", st.session_state.files_for_download[f"{doc.metadata['source']}"], file_name=doc.metadata[
+                                                    "source"], mime="application/octet-stream", key=uuid.uuid4(), use_container_width=True)
         else:
             st.chat_message(msg["role"]).write(msg["content"])
 
