@@ -33,7 +33,7 @@ else:
 
     st.title("Upload Documents")
 
-    accepted_file_types = ["pdf", "csv", "docx", "xlsx"]
+    accepted_file_types = ["pdf", "csv", "docx", "xlsx", "json"]
 
     uploaded_files = st.file_uploader("Upload one or more files", accept_multiple_files=True, type=accepted_file_types)
 
@@ -68,7 +68,7 @@ else:
                             docs = parse_json(file_content,filename=file.name)
                         else:
                             docs = docs + parse_json(file_content,filename=file.name)
-                            
+
                     elif file_extension == 'DOCX':
                         if docs is None:
                             docs = parse_docx(file_content,filename=file.name)
