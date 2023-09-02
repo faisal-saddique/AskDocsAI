@@ -30,7 +30,7 @@ if "uploaded_files_history" in st.session_state:
         st.success("Starting Over again...")
 else:
 
-    st.title("Upload Documents sfdfsa")
+    st.title("Upload Documents")
 
     accepted_file_types = ["pdf", "csv", "docx", "xlsx"]
 
