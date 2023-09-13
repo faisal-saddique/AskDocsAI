@@ -21,6 +21,9 @@ sidebar()
 # Load environment variables from .env file
 load_dotenv()
 
+if "start_fresh" not in st.session_state:
+    st.session_state["start_fresh"] = False
+
 def del_uf_history():
     del st.session_state.uploaded_files_history
     del st.session_state.index
@@ -45,7 +48,7 @@ def download_existing_index():
     else:
         st.error("No index found!")
 
-if "uploaded_files_history" in st.session_state:
+if "uploaded_files_history" in st.session_state and not st.session_state["start_fresh"]:
     st.title("Create New KnowledgeBase")
     st.warning("Index Already Existing.")
     st.write("Files in Index:")
@@ -54,7 +57,7 @@ if "uploaded_files_history" in st.session_state:
     download_existing_index()
     if st.button("Start Over",on_click=del_uf_history,type="secondary",use_container_width=True):
         st.success("Starting Over again...")
-elif "is_index_loaded" in st.session_state:
+elif "is_index_loaded" in st.session_state and not st.session_state["start_fresh"]:
     st.title("Create New KnowledgeBase")
     st.warning("Index Already Existing.")
     # for file in st.session_state.uploaded_files_history:
@@ -133,10 +136,17 @@ else:
                 no_of_tokens = num_tokens_from_string(chunked_docs)
                 st.write(f"Number of tokens: \n{no_of_tokens}")
 
-                with st.spinner("Creating Index..."):
-                    st.session_state.index = add_vectors_to_FAISS(chunked_docs=chunked_docs)
-                    st.success("Done! Please headover to chatbot to start interacting with your data.")
-                    download_existing_index()
+                if no_of_tokens:
+                    with st.spinner("Creating Index..."):
+                        st.session_state.index = add_vectors_to_FAISS(chunked_docs=chunked_docs)
+                        st.success("Done! Please headover to chatbot to start interacting with your data.")
+                        download_existing_index()
+                        st.session_state["start_fresh"] = False
+                else:
+                    st.error("No text found in the docs to index. Please make sure the documents you uploaded have a selectable text.")
+                    if "uploaded_files_history" in st.session_state:
+                        st.session_state.uploaded_files_history = {}
+                    st.session_state["start_fresh"] = True
             else:
                 st.error("Please add some files first!")
     except Exception as e:

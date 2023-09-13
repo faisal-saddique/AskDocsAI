@@ -55,7 +55,7 @@ class CustomDataChatbot:
         # Create a Pinecone vector store using an existing index and OpenAI embeddings
         vectorstore = st.session_state.index
 
-        st.session_state.qa = RetrievalQA.from_chain_type(llm=ChatOpenAI(streaming=True), chain_type="stuff", retriever=vectorstore.as_retriever(), return_source_documents=True,chain_type_kwargs=chain_type_kwargs)
+        st.session_state.qa = RetrievalQA.from_chain_type(llm=ChatOpenAI(streaming=True), chain_type="stuff", retriever=vectorstore.as_retriever(search_type="similarity_score_threshold", search_kwargs={"score_threshold": .5}), return_source_documents=True,chain_type_kwargs=chain_type_kwargs)
         
 
     @utils.enable_chat_history
