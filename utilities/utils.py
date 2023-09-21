@@ -11,7 +11,7 @@ import pandas as pd
 import tempfile
 import tiktoken
 import re
-
+import streamlit as st
 import json
 from langchain.docstore.document import Document
 import unicodedata
@@ -194,7 +194,7 @@ def parse_json(content, filename):
                 data = json.loads(line)
                 data_list.append(data)
             except json.JSONDecodeError as e:
-                print(f"Error decoding JSON: {str(e)}")
+                st.error(f"Error decoding JSON: {str(e)}")
 
     # Create a DataFrame from the list of dictionaries
     df = pd.DataFrame(data_list)
