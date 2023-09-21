@@ -186,18 +186,27 @@ def parse_json(content, filename):
         temp_file.write(content)
         temp_file_path = temp_file.name
 
-    # Read and process each line as a separate JSON object
-    docs = []
-    with open(temp_file_path, 'r') as jsonl_file:
-        for line in jsonl_file: 
+    data_list = []
+    # Open and read the JSON file with 'utf-8' encoding
+    with open(temp_file_path, 'r', encoding='utf-8') as json_file:
+        for line in json_file:
             try:
-                json_obj = json.loads(line)
-                # Assuming you want to create a Document from each JSON object
-                docs.append(Document(page_content=json.dumps(json_obj), metadata={"source": filename}))
+                data = json.loads(line)
+                data_list.append(data)
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON: {str(e)}")
 
-    return docs
+    # Create a DataFrame from the list of dictionaries
+    df = pd.DataFrame(data_list)
+    res = json.loads(df.to_json(orient='records'))
+
+    if len(res):
+        docs = []
+        for i in res:
+            docs.append(Document(page_content=json.dumps(i),metadata={"source":filename}))
+        return docs
+    else:
+        return []
 
 # def parse_json(content, filename):
 #     # Assuming the content is in bytes format, save it temporarily
