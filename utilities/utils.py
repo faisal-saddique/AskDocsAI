@@ -189,7 +189,7 @@ def parse_json(content, filename):
     # Read and process each line as a separate JSON object
     docs = []
     with open(temp_file_path, 'r') as jsonl_file:
-        for line in jsonl_file:
+        for line in jsonl_file: 
             try:
                 json_obj = json.loads(line)
                 # Assuming you want to create a Document from each JSON object
