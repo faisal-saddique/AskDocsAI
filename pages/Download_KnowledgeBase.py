@@ -26,4 +26,4 @@ if "Knowledgebase" in st.session_state:
             st.info(f"**{file}**: {st.session_state.uploaded_files_history[file]} KBs")
     download_existing_Knowledgebase()
 else:
-    st.warning("Please create a knowledgeBase first!")
+    st.warning("Please create a Knowledgebase first!")

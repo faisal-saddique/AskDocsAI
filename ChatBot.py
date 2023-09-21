@@ -101,4 +101,4 @@ if __name__ == "__main__":
         obj.main()
         sidebar()
     else:
-        st.warning("Please create a knowledgeBase first!")
+        st.warning("Please create a Knowledgebase first!")
