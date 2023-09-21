@@ -180,7 +180,7 @@ def parse_readable_pdf(content,filename):
 
     return pdf_data
 
-def parse_jsonl(content, filename):
+def parse_json(content, filename):
     # Assuming the content is in bytes format, save it temporarily
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp_file:
         temp_file.write(content)
