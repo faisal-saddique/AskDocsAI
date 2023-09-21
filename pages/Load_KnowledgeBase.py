@@ -42,7 +42,7 @@ uploaded_zip = st.file_uploader("Upload the zip file containing the KnowledgeBas
 
 if uploaded_zip:
     # Create a temporary directory to extract the zip contents
-    temp_dir = "temp_faiss_index"
+    temp_dir = "temp_faiss_Knowledgebase"
     os.makedirs(temp_dir, exist_ok=True)
 
     # Extract the zip contents to the temporary directory
@@ -52,17 +52,17 @@ if uploaded_zip:
     # Check if the extracted directory contains valid contents
     if is_valid_zip_contents(temp_dir):
         embeddings = OpenAIEmbeddings()  # type: ignore
-        # Load the FAISS index from the temporary directory
+        # Load the FAISS Knowledgebase from the temporary directory
         try:
-            if "index" not in st.session_state:
-                st.session_state.index = FAISS.load_local(temp_dir, embeddings)
+            if "Knowledgebase" not in st.session_state:
+                st.session_state.Knowledgebase = FAISS.load_local(temp_dir, embeddings)
             else:
-                st.session_state.index = FAISS.load_local(temp_dir, embeddings)
-            st.success("Index loaded successfully!")
-            st.session_state["is_index_loaded"] = True
+                st.session_state.Knowledgebase = FAISS.load_local(temp_dir, embeddings)
+            st.success("Knowledgebase loaded successfully!")
+            st.session_state["is_Knowledgebase_loaded"] = True
             # Now you can use 'new_db' for further operations
         except Exception as e:
-            st.error(f"An error occurred while loading the FAISS index: {e}")
+            st.error(f"An error occurred while loading the FAISS Knowledgebase: {e}")
     else:
         st.error("Invalid zip file contents. Please make sure the zip contains only two files with the same name and extensions '.faiss' and '.pkl'.")
 

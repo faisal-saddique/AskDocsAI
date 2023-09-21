@@ -72,8 +72,6 @@ else:
                     st.session_state.uploaded_files_history[f"{file.name}"] = round(file.size / 1024, 2)
                     st.session_state.files_for_download[f"{file.name}"] = file_content
 
-                    # st.write(file_content)
-
                     if file_extension == 'PDF':
                         if docs is None:
                             docs = parse_readable_pdf(file_content,filename=file.name)
@@ -105,14 +103,8 @@ else:
                             docs = docs + parse_csv(file_content,filename=file.name)
                     else:
                         raise ValueError("File type not supported!")
-                    
-                    # for doc in docs:
-                    #     st.success(doc)
 
                 chunked_docs = refined_docs(docs)
-
-                # for doc in chunked_docs:
-                #     st.warning(doc)
 
                 no_of_tokens = num_tokens_from_string(chunked_docs)
                 st.write(f"Number of tokens: \n{no_of_tokens}")
