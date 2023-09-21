@@ -20,21 +20,54 @@ from langchain.vectorstores import FAISS
 
 from dotenv import load_dotenv
 
+import zipfile
+import io
+import os
+from datetime import datetime
+
 # Load environment variables from .env file
 load_dotenv()
 
 # Set the environment variable
 os.environ['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY')
 
+def download_existing_Knowledgebase():
+    if "Knowledgebase" in st.session_state:
+        # Save the Knowledgebase locally
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        Knowledgebase_name = f"faiss_Knowledgebase_{timestamp}"
+        st.session_state.Knowledgebase.save_local(Knowledgebase_name)
+
+        # Create a zip archive of the 'faiss_Knowledgebase' folder
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for root, dirs, files in os.walk(Knowledgebase_name):
+                for file in files:
+                    zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), Knowledgebase_name))
+
+
+        # Offer the zip file as a download button
+        st.download_button("Download Knowledgebase", zip_buffer.getvalue(), file_name=f'{Knowledgebase_name}.zip', key='faiss_Knowledgebase_zip', use_container_width=True)
+    else:
+        st.error("No Knowledgebase found!")
+
+def add_vectors_to_existing_FAISS(chunked_docs,old_Knowledgebase):
+    """Embeds a list of Documents and adds them to a Pinecone Knowledgebase"""
+    # Embed the chunks
+    embeddings = OpenAIEmbeddings()  # type: ignore
+    Knowledgebase = FAISS.from_documents(chunked_docs,embeddings)
+    Knowledgebase.merge_from(old_Knowledgebase)
+    return Knowledgebase
+
 def add_vectors_to_FAISS(chunked_docs):
-    """Embeds a list of Documents and adds them to a Pinecone Index"""
+    """Embeds a list of Documents and adds them to a Pinecone Knowledgebase"""
     
     # Embed the chunks
     embeddings = OpenAIEmbeddings()  # type: ignore
 
-    index = FAISS.from_documents(chunked_docs,embeddings)
+    Knowledgebase = FAISS.from_documents(chunked_docs,embeddings)
 
-    return index
+    return Knowledgebase
 
 def convert_filename_to_key(input_string):
     # Normalize string to decomposed form (separate characters and diacritics)
@@ -149,15 +182,15 @@ def num_tokens_from_string(chunked_docs: List[Document]) -> int:
     num_tokens = len(encoding.encode(string))
     return num_tokens
 
-def create_index_from_docs(docs: List[Document]) -> VectorStore:
-    """Embeds a list of Documents and returns a FAISS index"""
+def create_Knowledgebase_from_docs(docs: List[Document]) -> VectorStore:
+    """Embeds a list of Documents and returns a FAISS Knowledgebase"""
     
     # Embed the chunks
     embeddings = OpenAIEmbeddings()  # type: ignore
     
-    index = FAISS.from_documents(docs, embeddings)
+    Knowledgebase = FAISS.from_documents(docs, embeddings)
 
-    return index
+    return Knowledgebase
 
 def parse_readable_pdf(content,filename):
     # Assuming the content is in bytes format, save it temporarily

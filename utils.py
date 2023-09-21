@@ -22,7 +22,7 @@ def enable_chat_history(func):
         st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
     for msg in st.session_state["messages"]:
         if msg["role"] == "assistant":
-            if "index" in st.session_state:
+            if "Knowledgebase" in st.session_state:
             # print(msg["content"])
                 with st.chat_message(msg["role"],avatar="https://e7.pngegg.com/pngimages/139/563/png-clipart-virtual-assistant-computer-icons-business-assistant-face-service-thumbnail.png"):
                     st.write(msg["content"])
@@ -32,7 +32,7 @@ def enable_chat_history(func):
                                 st.success(f"Filename: {doc.metadata['source']}")
                                 st.info(f"\nPage Content: {doc.page_content}")
                                 st.json(doc.metadata, expanded= False)
-                                if "is_index_loaded" in st.session_state and st.session_state.is_index_loaded:
+                                if "is_Knowledgebase_loaded" in st.session_state and st.session_state.is_Knowledgebase_loaded:
                                     pass
                                 else:
                                     st.download_button("Download Original File", st.session_state.files_for_download[f"{doc.metadata['source']}"], file_name=doc.metadata[

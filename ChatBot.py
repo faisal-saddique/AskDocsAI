@@ -52,10 +52,10 @@ class CustomDataChatbot:
 
         chain_type_kwargs = {"prompt": PROMPT}
 
-        # Create a Pinecone vector store using an existing index and OpenAI embeddings
-        vectorstore = st.session_state.index
+        # Create a FAISS vector store using an existing Knowledgebase and OpenAI embeddings
+        vectorstore = st.session_state.Knowledgebase
 
-        st.session_state.qa = RetrievalQA.from_chain_type(llm=ChatOpenAI(streaming=True), chain_type="stuff", retriever=vectorstore.as_retriever(search_type="similarity_score_threshold", search_kwargs={"score_threshold": .5}), return_source_documents=True,chain_type_kwargs=chain_type_kwargs)
+        return RetrievalQA.from_chain_type(llm=ChatOpenAI(streaming=True), chain_type="stuff", retriever=vectorstore.as_retriever(search_type="similarity_score_threshold", search_kwargs={"score_threshold": .5}), return_source_documents=True,chain_type_kwargs=chain_type_kwargs)
         
 
     @utils.enable_chat_history
@@ -69,17 +69,14 @@ class CustomDataChatbot:
 
             with st.chat_message("assistant", avatar="https://e7.pngegg.com/pngimages/139/563/png-clipart-virtual-assistant-computer-icons-business-assistant-face-service-thumbnail.png"):
                 st_callback = StreamHandler(st.empty())
-                if 'qa' not in st.session_state:
-                    st.session_state.qa = None
-                    self.create_qa_chain()
-                result = st.session_state.qa({"query": user_query}, callbacks=[
-                                             st_callback]) 
+                qa = self.create_qa_chain()
+                result = qa({"query": user_query}, callbacks=[st_callback])
                 with st.expander("See sources"):
                     for doc in result['source_documents']:
                         st.success(f"Filename: {doc.metadata['source']}")
                         st.info(f"\nPage Content: {doc.page_content}")
                         st.json(doc.metadata, expanded=False)
-                        if "is_index_loaded" in st.session_state and st.session_state.is_index_loaded:
+                        if "is_Knowledgebase_loaded" in st.session_state and st.session_state.is_Knowledgebase_loaded:
                             pass
                         else:
                             st.download_button("Download Original File", st.session_state.files_for_download[f"{doc.metadata['source']}"], file_name=doc.metadata[
@@ -92,7 +89,7 @@ class CustomDataChatbot:
 
 
 if __name__ == "__main__":
-    if "index" in st.session_state:
+    if "Knowledgebase" in st.session_state:
         obj = CustomDataChatbot()
         obj.main()
         sidebar()
