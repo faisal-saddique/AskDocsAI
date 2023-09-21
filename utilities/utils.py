@@ -181,30 +181,20 @@ def parse_readable_pdf(content,filename):
     return pdf_data
 
 def parse_json(content, filename):
-    # Split the content into lines
-    lines = content.decode('utf-8').splitlines()
+    # Assuming the content is in bytes format, save it temporarily
+    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp_file:
+        temp_file.write(content)
+        temp_file_path = temp_file.name
 
-    # Initialize a list to store dictionaries
     data_list = []
-
-    # Determine if it's JSON or JSONL
-    is_jsonl = any(line.strip().startswith('{') for line in lines)
-
-    if is_jsonl:
-        # If it's JSONL, iterate through lines
-        for line in lines:
+    # Open and read the JSON file with 'utf-8' encoding
+    with open(temp_file_path, 'r', encoding='utf-8') as json_file:
+        for line in json_file:
             try:
                 data = json.loads(line)
                 data_list.append(data)
             except json.JSONDecodeError as e:
-                print(f"Error decoding JSON: {str(e)}")
-    else:
-        # If it's a single JSON object, load it directly
-        try:
-            data = json.loads(content.decode('utf-8'))
-            data_list.append(data)
-        except json.JSONDecodeError as e:
-            print(f"Error decoding JSON: {str(e)}")
+                st.error(f"Error decoding JSON: {str(e)}")
 
     # Create a DataFrame from the list of dictionaries
     df = pd.DataFrame(data_list)
@@ -213,7 +203,7 @@ def parse_json(content, filename):
     if len(res):
         docs = []
         for i in res:
-            docs.append(Document(page_content=json.dumps(i), metadata={"source": filename}))
+            docs.append(Document(page_content=json.dumps(i),metadata={"source":filename}))
         return docs
     else:
         return []
