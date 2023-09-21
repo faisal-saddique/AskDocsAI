@@ -180,23 +180,42 @@ def parse_readable_pdf(content,filename):
 
     return pdf_data
 
-def parse_json(content, filename):
+def parse_jsonl(content, filename):
     # Assuming the content is in bytes format, save it temporarily
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp_file:
         temp_file.write(content)
         temp_file_path = temp_file.name
+
+    # Read and process each line as a separate JSON object
+    docs = []
+    with open(temp_file_path, 'r') as jsonl_file:
+        for line in jsonl_file:
+            try:
+                json_obj = json.loads(line)
+                # Assuming you want to create a Document from each JSON object
+                docs.append(Document(page_content=json.dumps(json_obj), metadata={"source": filename}))
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON: {str(e)}")
+
+    return docs
+
+# def parse_json(content, filename):
+#     # Assuming the content is in bytes format, save it temporarily
+#     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp_file:
+#         temp_file.write(content)
+#         temp_file_path = temp_file.name
     
-    data = json.load(open(temp_file_path,'r'))
-    df = pd.DataFrame(data)
-    res = json.loads(df.to_json(orient='records'))
-    if len(res):
-        docs = []
-        for i in res:
-            docs.append(Document(page_content=json.dumps(i),metadata={"source":filename}))
+#     data = json.load(open(temp_file_path,'r'))
+#     df = pd.DataFrame(data)
+#     res = json.loads(df.to_json(orient='records'))
+#     if len(res):
+#         docs = []
+#         for i in res:
+#             docs.append(Document(page_content=json.dumps(i),metadata={"source":filename}))
     
-        return docs
-    else:
-        return []
+#         return docs
+#     else:
+#         return []
     
 def remove_files_from_pinecone(path):
     
