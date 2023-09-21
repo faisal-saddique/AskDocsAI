@@ -9,12 +9,19 @@ from utilities.utils import (
     num_tokens_from_string,
     add_vectors_to_FAISS
 )
+
 from dotenv import load_dotenv
 
 from utilities.sidebar import sidebar
 
+st.set_page_config(
+    page_title='Create KnowledgeBase',
+    page_icon='🤖',
+    layout='wide',
+    initial_sidebar_state='expanded'
+)
 
-sidebar()
+# sidebar()
 
 # Load environment variables from .env file
 load_dotenv()

@@ -5,7 +5,14 @@ from utilities.utils import (
 from dotenv import load_dotenv
 from utilities.sidebar import sidebar
 
-sidebar()
+# sidebar()
+
+st.set_page_config(
+    page_title='Download KnowledgeBase',
+    page_icon='🤖',
+    layout='wide',
+    initial_sidebar_state='expanded'
+)
 
 # Load environment variables from .env file
 load_dotenv()

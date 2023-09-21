@@ -31,25 +31,45 @@ load_dotenv()
 # Set the environment variable
 os.environ['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY')
 
+import io
+import os
+import zipfile
+from datetime import datetime
+import streamlit as st
+
+def delete_downloaded_knowledgebase(Knowledgebase_name):
+    try:
+        # Delete the folder with the given name
+        if os.path.exists(Knowledgebase_name):
+            import shutil
+            shutil.rmtree(Knowledgebase_name)
+            print("Deleted the temporary Knowledgebase folder.")
+    except Exception as e:
+        print(f"Error occured while removing the temporary Knowledgebase folder.\n\n{e}")
+
 def download_existing_Knowledgebase():
     if "Knowledgebase" in st.session_state:
-        # Save the Knowledgebase locally
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        Knowledgebase_name = f"faiss_Knowledgebase_{timestamp}"
-        st.session_state.Knowledgebase.save_local(Knowledgebase_name)
+        prepare_button_clicked = st.button("Prepare Knowledgebase For Download", type='primary', use_container_width=True)
 
-        # Create a zip archive of the 'faiss_Knowledgebase' folder
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            for root, dirs, files in os.walk(Knowledgebase_name):
-                for file in files:
-                    zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), Knowledgebase_name))
+        if prepare_button_clicked:
+            # Save the Knowledgebase locally
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            Knowledgebase_name = f"faiss_Knowledgebase_{timestamp}"
+            st.session_state.Knowledgebase.save_local(Knowledgebase_name)
 
+            # Create a zip archive of the 'faiss_Knowledgebase' folder
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                for root, dirs, files in os.walk(Knowledgebase_name):
+                    for file in files:
+                        zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), Knowledgebase_name))
 
-        # Offer the zip file as a download button
-        st.download_button("Download Knowledgebase", zip_buffer.getvalue(), file_name=f'{Knowledgebase_name}.zip', key='faiss_Knowledgebase_zip', use_container_width=True)
+            # Offer the zip file as a download button
+            st.download_button("Download Knowledgebase", zip_buffer.getvalue(), file_name=f'{Knowledgebase_name}.zip', key='faiss_Knowledgebase_zip', use_container_width=True, on_click=lambda: delete_downloaded_knowledgebase(Knowledgebase_name))
+
     else:
         st.error("No Knowledgebase found!")
+
 
 def add_vectors_to_existing_FAISS(chunked_docs,old_Knowledgebase):
     """Embeds a list of Documents and adds them to a Pinecone Knowledgebase"""

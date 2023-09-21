@@ -8,7 +8,7 @@ description = """
 def sidebar():
     with st.sidebar:
         if "session_chat_history" in st.session_state:
-            st.divider()
+            # st.divider()
             # Generate a unique filename using the current timestamp
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             file_name = f"chat_history_{timestamp}.txt"

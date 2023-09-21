@@ -17,6 +17,13 @@ from langchain.chains import RetrievalQA
 
 from langchain.prompts import PromptTemplate
 
+st.set_page_config(
+    page_title='Ask Docs AI',
+    page_icon='🤖',
+    layout='wide',
+    initial_sidebar_state='expanded'
+)
+
 st.title("Ask Docs AI 🤖")
 
 if "session_chat_history" not in st.session_state:

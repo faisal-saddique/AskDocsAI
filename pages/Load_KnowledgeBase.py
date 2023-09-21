@@ -7,8 +7,15 @@ from langchain.embeddings import OpenAIEmbeddings
 from dotenv import load_dotenv
 from utilities.sidebar import sidebar
 
+st.set_page_config(
+    page_title='Load KnowledgeBase',
+    page_icon='🤖',
+    layout='wide',
+    initial_sidebar_state='expanded'
+)
+
 load_dotenv()
-sidebar()
+# sidebar()
 
 def is_valid_zip_contents(extracted_dir):
     # Check if the extracted directory contains only two files with the correct name and extensions

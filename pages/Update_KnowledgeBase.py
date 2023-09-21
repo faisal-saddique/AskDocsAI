@@ -12,7 +12,14 @@ from utilities.utils import (
 from dotenv import load_dotenv
 from utilities.sidebar import sidebar
 
-sidebar()
+st.set_page_config(
+    page_title='Update KnowledgeBase',
+    page_icon='🤖',
+    layout='wide',
+    initial_sidebar_state='expanded'
+)
+
+# sidebar()
 
 # Load environment variables from .env file
 load_dotenv()
@@ -93,4 +100,4 @@ if "Knowledgebase" in st.session_state:
             st.info(f"**{file}**: {st.session_state.uploaded_files_history[file]} KBs")
     add_more_files_to_the_existing_knowledgebase()
 else:
-    st.warning("Please create a knowledgeBase first!")
+    st.warning("Please create a Knowledgebase first!")
