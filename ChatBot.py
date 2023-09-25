@@ -61,8 +61,18 @@ class CustomDataChatbot:
 
         # Create a FAISS vector store using an existing Knowledgebase and OpenAI embeddings
         vectorstore = st.session_state.Knowledgebase
+        
+        from langchain.retrievers.multi_query import MultiQueryRetriever
+        from langchain.retrievers import ContextualCompressionRetriever
+        from langchain.retrievers.document_compressors import LLMChainExtractor
 
-        return RetrievalQA.from_chain_type(llm=ChatOpenAI(streaming=True), chain_type="stuff", retriever=vectorstore.as_retriever(search_type="similarity_score_threshold", search_kwargs={"score_threshold": .5}), return_source_documents=True,chain_type_kwargs=chain_type_kwargs)
+        llm = ChatOpenAI(temperature=0)
+        retriever_from_llm = MultiQueryRetriever.from_llm(
+            retriever=vectorstore.as_retriever(search_type="similarity_score_threshold", search_kwargs={"score_threshold": .5}), llm=llm
+        )
+        compressor = LLMChainExtractor.from_llm(llm)
+        compression_retriever = ContextualCompressionRetriever(base_compressor=compressor, base_retriever=retriever_from_llm)
+        return RetrievalQA.from_chain_type(llm=ChatOpenAI(streaming=True), chain_type="stuff", retriever=compression_retriever, return_source_documents=True,chain_type_kwargs=chain_type_kwargs)
         
 
     @utils.enable_chat_history
