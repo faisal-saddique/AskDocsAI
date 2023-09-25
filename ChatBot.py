@@ -68,7 +68,7 @@ class CustomDataChatbot:
 
         llm = ChatOpenAI(temperature=0)
         retriever_from_llm = MultiQueryRetriever.from_llm(
-            retriever=vectorstore.as_retriever(search_type="similarity_score_threshold", search_kwargs={"score_threshold": .5}), llm=llm
+            retriever=vectorstore.as_retriever(search_kwargs={"k": 5}), llm=llm
         )
         compressor = LLMChainExtractor.from_llm(llm)
         compression_retriever = ContextualCompressionRetriever(base_compressor=compressor, base_retriever=retriever_from_llm)
