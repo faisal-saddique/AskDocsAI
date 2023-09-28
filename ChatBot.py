@@ -7,6 +7,7 @@ import streamlit as st
 from utilities.sidebar import sidebar
 from streaming import StreamHandler
 import uuid
+from langchain.callbacks.base import BaseCallbackHandler
 
 # Import required libraries for different functionalities
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -34,6 +35,20 @@ load_dotenv()
 
 embeddings = OpenAIEmbeddings()
 
+class PrintRetrievalHandler(BaseCallbackHandler):
+    def __init__(self, container):
+        self.status = container.status("**Context Retrieval**")
+
+    def on_retriever_start(self, serialized: dict, query: str, **kwargs):
+        self.status.write(f"**Question:** {query}")
+        self.status.update(label=f"**Context Retrieval:** {query}")
+
+    def on_retriever_end(self, documents, **kwargs):
+        for idx, doc in enumerate(documents):
+            # source = os.path.basename(doc.metadata["path"])
+            self.status.write(f"**Document: {idx}**")
+            self.status.markdown(doc.page_content)
+        self.status.update(state="complete")
 
 class CustomDataChatbot:
 
@@ -85,9 +100,10 @@ class CustomDataChatbot:
             utils.display_msg(user_query, 'user')
 
             with st.chat_message("assistant", avatar="https://e7.pngegg.com/pngimages/139/563/png-clipart-virtual-assistant-computer-icons-business-assistant-face-service-thumbnail.png"):
+                retrieval_handler = PrintRetrievalHandler(st.container())
                 st_callback = StreamHandler(st.empty())
                 qa = self.create_qa_chain()
-                result = qa({"query": user_query}, callbacks=[st_callback])
+                result = qa({"query": user_query}, callbacks=[retrieval_handler,st_callback])
                 with st.expander("See sources"):
                     for doc in result['source_documents']:
                         st.success(f"Filename: {doc.metadata['source']}")
